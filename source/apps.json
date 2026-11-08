@@ -1,0 +1,42 @@
+{
+  "name": "Ben's Factory",
+  "identifier": "com.benmcclain.factory.source",
+  "subtitle": "Private source for the Factory app",
+  "website": "https://github.com/evenpagedigital/evenpage-ios",
+  "tintColor": "#3B82F6",
+  "apps": [
+    {
+      "name": "Factory",
+      "bundleIdentifier": "com.benmcclain.factoryconsole",
+      "developerName": "Ben McClain",
+      "subtitle": "Factory console",
+      "localizedDescription": "Phone shell for the factory dashboard.",
+      "iconURL": "https://raw.githubusercontent.com/evenpagedigital/evenpage-ios/main/source/icon.png",
+      "tintColor": "#3B82F6",
+      "category": "utilities",
+      "versions": [
+        {
+          "version": "1.0",
+          "buildVersion": "1",
+          "date": "2026-11-08T17:16:03Z",
+          "localizedDescription": "go-live-1839f2462390403987b40a4dcd9b2b60",
+          "downloadURL": "https://github.com/evenpagedigital/evenpage-ios/releases/download/build-1/Factory.ipa",
+          "size": 719530,
+          "minOSVersion": "15.0"
+        }
+      ],
+      "appPermissions": {
+        "entitlements": [],
+        "privacy": {
+          "NSMicrophoneUsageDescription": "Factory uses the microphone for voice commands.",
+          "NSSpeechRecognitionUsageDescription": "Factory uses on-device speech recognition for voice commands."
+        }
+      },
+      "version": "1.0",
+      "versionDate": "2026-11-08T17:16:03Z",
+      "downloadURL": "https://github.com/evenpagedigital/evenpage-ios/releases/download/build-1/Factory.ipa",
+      "size": 719530
+    }
+  ],
+  "news": []
+}
