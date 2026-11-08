@@ -1,0 +1,68 @@
+name: ios-unsigned-ipa
+run-name: Factory iOS - ${{ inputs.notes }}
+on:
+  workflow_dispatch:
+    inputs:
+      notes:
+        description: "What's new (shown in SideStore)"
+        required: false
+        default: "Factory update"
+permissions:
+  contents: write
+concurrency:
+  group: ios-release
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: macos-15
+    env:
+      BUILD_NUMBER: ${{ github.run_number }}
+      APP_VERSION: "1.0"
+      # Intended repository: evenpagedigital/evenpage-ios
+      # SideStore: https://raw.githubusercontent.com/evenpagedigital/evenpage-ios/main/source/apps.json
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - run: npm install
+      - run: npx cap add ios
+      - run: npx cap sync ios
+      - name: Bump version/build number
+        run: |
+          PLIST=ios/App/App/Info.plist
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $APP_VERSION" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :NSMicrophoneUsageDescription string 'Factory uses the microphone for voice commands.'" "$PLIST" || true
+          /usr/libexec/PlistBuddy -c "Add :NSSpeechRecognitionUsageDescription string 'Factory uses on-device speech recognition for voice commands.'" "$PLIST" || true
+      - name: Build unsigned IPA
+        run: |
+          cd ios/App
+          xcodebuild -workspace App.xcworkspace -scheme App -configuration Release -sdk iphoneos \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" build
+          mkdir -p Payload && cp -R build/Build/Products/Release-iphoneos/App.app Payload/
+          zip -qr "../../Factory.ipa" Payload
+      - name: Sanity-check IPA
+        run: python3 scripts/check_ipa.py Factory.ipa --expect-build "$BUILD_NUMBER"
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NOTES: ${{ inputs.notes }}
+        run: |
+          TAG="build-$BUILD_NUMBER"
+          gh release create "$TAG" Factory.ipa --title "Factory $APP_VERSION ($BUILD_NUMBER)" --notes "$NOTES"
+      - name: Regenerate SideStore source JSON
+        env:
+          NOTES: ${{ inputs.notes }}
+        run: |
+          python3 scripts/make_source.py \
+            --source source/apps.json --ipa Factory.ipa \
+            --version "$APP_VERSION" --build "$BUILD_NUMBER" \
+            --url "https://github.com/${GITHUB_REPOSITORY}/releases/download/build-${BUILD_NUMBER}/Factory.ipa" \
+            --notes "$NOTES" --repo "$GITHUB_REPOSITORY"
+          python3 scripts/validate_source.py source/apps.json
+      - name: Commit source (served by raw.githubusercontent / Pages)
+        run: |
+          git config user.name "factory-bot"
+          git config user.email "factory-bot@users.noreply.github.com"
+          git add source/apps.json
+          git commit -m "source: build $BUILD_NUMBER" && git push

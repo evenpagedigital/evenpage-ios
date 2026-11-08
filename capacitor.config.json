@@ -1,0 +1,4 @@
+{"appId":"com.benmcclain.factoryconsole","appName":"Factory",
+ "webDir":"www",
+ "server":{"url":"https://desktop-03poelq.tailb5a5a1.ts.net/","cleartext":false},
+ "ios":{"contentInset":"always","backgroundColor":"#0b0d10"}}
